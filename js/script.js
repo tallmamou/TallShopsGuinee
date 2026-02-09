@@ -1,9 +1,6 @@
 // script.js - Tall Shops Guinée (Version Corrigée)
 // WHATSAPP_NUMBER defined in index.html
 
-// script.js - Tall Shops Guinée (Conversion automatique URLs)
-// WHATSAPP_NUMBER defined in index.html
-
 (() => {
   const WHA = (typeof WHATSAPP_NUMBER !== 'undefined') ? WHATSAPP_NUMBER : '13478037813';
   const cart = [];
@@ -311,7 +308,14 @@
     // IMPORTANT: Convertir le chemin en URL complète pour WhatsApp
     const imageUrl = getFullImageUrl(imagePath);
     
-    const message = `🛍️ Nouvelle commande Tall Shops Guinée%0A%0A• ${name} — 1 × ${formatGNF(price)}%0A📸 ${imageUrl}%0A%0AMerci de confirmer la disponibilité.`;
+    // Message formaté pour WhatsApp avec lien image bien visible
+    const message = `🛍️ *Nouvelle commande Tall Shops Guinée*%0A%0A` +
+                    `📦 *Produit :* ${name}%0A` +
+                    `💰 *Prix :* ${formatGNF(price)}%0A` +
+                    `🔢 *Quantité :* 1%0A%0A` +
+                    `📸 *Voir l'image du produit :*%0A${imageUrl}%0A%0A` +
+                    `✅ Merci de confirmer la disponibilité et les frais de livraison.`;
+    
     window.open(`https://wa.me/${WHA}?text=${message}`, '_blank');
   }
   
@@ -326,7 +330,7 @@
         id: prod.dataset.id,
         name: prod.dataset.name,
         price: parseInt(prod.dataset.price, 10),
-        image: prod.dataset.image  // Stocke le chemin tel quel (sera converti au besoin)
+        image: prod.dataset.image
       };
       openProductModal(product);
       return;
@@ -340,7 +344,7 @@
         id: prod.dataset.id,
         name: prod.dataset.name,
         price: parseInt(prod.dataset.price, 10),
-        image: prod.dataset.image  // Stocke le chemin (sera converti pour WhatsApp)
+        image: prod.dataset.image
       };
       addToCart(item);
       return;
@@ -351,7 +355,6 @@
       e.stopPropagation();
       const btn = e.target.matches('.whatsapp-btn') ? e.target : e.target.closest('.whatsapp-btn');
       const prod = btn.closest('.product');
-      // La fonction buySingleProduct convertira automatiquement en URL complète
       buySingleProduct(
         prod.dataset.name, 
         parseInt(prod.dataset.price, 10), 
@@ -382,7 +385,6 @@
   if (buyWhatsappModalBtn) {
     buyWhatsappModalBtn.addEventListener('click', () => {
       if (currentProduct) {
-        // La fonction convertira automatiquement en URL complète
         buySingleProduct(currentProduct.name, currentProduct.price, currentProduct.image);
         closeProductModal();
       }
@@ -454,15 +456,19 @@
       return;
     }
     
-    let message = '🛍️ Nouvelle commande Tall Shops Guinée%0A%0A';
-    cart.forEach(i => {
-      // IMPORTANT: Convertir chaque image en URL complète
+    let message = `🛍️ *Nouvelle commande Tall Shops Guinée*%0A%0A`;
+    
+    cart.forEach((i, index) => {
       const fullImageUrl = getFullImageUrl(i.image);
-      message += `• ${i.name} — ${i.qty} × ${formatGNF(i.price)}%0A📸 ${fullImageUrl}%0A%0A`;
+      message += `*${index + 1}.* ${i.name}%0A`;
+      message += `   💰 ${formatGNF(i.price)} × ${i.qty} = ${formatGNF(i.price * i.qty)}%0A`;
+      message += `   📸 ${fullImageUrl}%0A%0A`;
     });
     
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    message += `💰 Total : ${formatGNF(total)}%0A%0AMerci de confirmer la disponibilité et la livraison.`;
+    message += `━━━━━━━━━━━━━━━%0A`;
+    message += `💰 *TOTAL : ${formatGNF(total)}*%0A%0A`;
+    message += `✅ Merci de confirmer la disponibilité et les frais de livraison.`;
     
     window.open(`https://wa.me/${WHA}?text=${message}`, '_blank');
   });
