@@ -1,4 +1,4 @@
-// script.js - Tall Shops Guinée (Version Améliorée)
+// script.js - Tall Shops Guinée (Version Corrigée)
 // WHATSAPP_NUMBER defined in index.html
 
 (() => {
@@ -255,6 +255,15 @@
     imageContainer.style.cursor = scale > 1 ? 'move' : 'default';
   }
   
+  // ==================== WHATSAPP FUNCTIONS ====================
+  
+  // Buy single product directly
+  function buySingleProduct(name, price, image) {
+    const imageUrl = image;
+    const message = `🛍️ Nouvelle commande Tall Shops Guinée%0A%0A• ${name} — 1 × ${formatGNF(price)}%0A📸 ${imageUrl}%0A%0AMerci de confirmer la disponibilité.`;
+    window.open(`https://wa.me/${WHA}?text=${message}`, '_blank');
+  }
+  
   // ==================== EVENT LISTENERS ====================
   
   // Product click - Open modal
@@ -283,6 +292,7 @@
         image: prod.dataset.image
       };
       addToCart(item);
+      return;
     }
     
     // Buy single on WhatsApp
@@ -291,6 +301,7 @@
       const btn = e.target.matches('.whatsapp-btn') ? e.target : e.target.closest('.whatsapp-btn');
       const prod = btn.closest('.product');
       buySingleProduct(prod.dataset.name, parseInt(prod.dataset.price, 10), prod.dataset.image);
+      return;
     }
   });
   
@@ -303,7 +314,7 @@
     modalOverlay.addEventListener('click', closeProductModal);
   }
   
-  if (addToCartModalBtn && currentProduct) {
+  if (addToCartModalBtn) {
     addToCartModalBtn.addEventListener('click', () => {
       if (currentProduct) {
         addToCart(currentProduct);
@@ -388,8 +399,7 @@
     
     let message = '🛍️ Nouvelle commande Tall Shops Guinée%0A%0A';
     cart.forEach(i => {
-      const imageUrl = i.image;
-      message += `• ${i.name} — ${i.qty} × ${formatGNF(i.price)}%0A📸 ${imageUrl}%0A%0A`;
+      message += `• ${i.name} — ${i.qty} × ${formatGNF(i.price)}%0A📸 ${i.image}%0A%0A`;
     });
     
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -397,14 +407,6 @@
     
     window.open(`https://wa.me/${WHA}?text=${message}`, '_blank');
   });
-  
-  // Buy single product directly
-  function buySingleProduct(name, price, image) {
-   const imageUrl = imageUrl = image;
-    const message = `🛍️ Nouvelle commande Tall Shops Guinée%0A%0A• ${name} — 1 × ${formatGNF(price)}%0A📸 ${imageUrl}%0A%0AMerci de confirmer la disponibilité.`;
-
-    window.open(`https://wa.me/${WHA}?text=${message}`, '_blank');
-  }
   
   // Cart open/close
   cartBtnFloating && cartBtnFloating.addEventListener('click', openCart);
