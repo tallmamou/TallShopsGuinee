@@ -1,9 +1,16 @@
 // script.js - Tall Shops Guinée (Version Corrigée)
 // WHATSAPP_NUMBER defined in index.html
 
+// script.js - Tall Shops Guinée (Conversion automatique URLs)
+// WHATSAPP_NUMBER defined in index.html
+
 (() => {
   const WHA = (typeof WHATSAPP_NUMBER !== 'undefined') ? WHATSAPP_NUMBER : '13478037813';
   const cart = [];
+  
+  // Configuration de l'URL de base pour les images
+  // IMPORTANT: Modifiez cette URL selon votre hébergement
+  const BASE_IMAGE_URL = 'https://tallmamou.github.io/TallShopsGuinee/';
   
   // DOM Elements
   const cartPanel = document.getElementById('cart-panel');
@@ -68,6 +75,39 @@
     setTimeout(() => toast.style.opacity = 0, 2000);
   };
   
+  /**
+   * Convertit un chemin d'image en URL complète
+   * @param {string} imagePath - Chemin de l'image (relatif ou absolu)
+   * @returns {string} URL complète de l'image
+   */
+  function getFullImageUrl(imagePath) {
+    // Si l'image commence déjà par http:// ou https://, on la retourne telle quelle
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    // Sinon, on construit l'URL complète
+    // Enlever le "/" au début si présent
+    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    
+    // Retourner l'URL complète
+    return BASE_IMAGE_URL + cleanPath;
+  }
+  
+  /**
+   * Obtient l'image pour l'affichage local (peut être relative)
+   * @param {string} imagePath - Chemin de l'image
+   * @returns {string} Chemin pour l'affichage local
+   */
+  function getDisplayImagePath(imagePath) {
+    // Si c'est une URL complète, on peut l'utiliser telle quelle
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    // Sinon, retourner le chemin relatif pour l'affichage local
+    return imagePath;
+  }
+  
   // ==================== CART FUNCTIONS ====================
   
   function findItem(id) {
@@ -101,8 +141,10 @@
     cart.forEach(it => {
       const div = document.createElement('div');
       div.className = 'cart-item';
+      // Utiliser le chemin d'affichage pour le panier
+      const displayImage = getDisplayImagePath(it.image);
       div.innerHTML = `
-        <img src="${it.image}" alt="${it.name}">
+        <img src="${displayImage}" alt="${it.name}">
         <div class="meta">
           <div class="name">${it.name}</div>
           <div class="price">${formatGNF(it.price)} × ${it.qty}</div>
@@ -164,7 +206,9 @@
   function openProductModal(product) {
     currentProduct = product;
     
-    modalImage.src = product.image;
+    // Utiliser le chemin d'affichage pour le modal
+    const displayImage = getDisplayImagePath(product.image);
+    modalImage.src = displayImage;
     modalTitle.textContent = product.name;
     modalPrice.textContent = formatGNF(product.price);
     
@@ -257,9 +301,16 @@
   
   // ==================== WHATSAPP FUNCTIONS ====================
   
-  // Buy single product directly
-  function buySingleProduct(name, price, image) {
-    const imageUrl = image;
+  /**
+   * Acheter un seul produit sur WhatsApp
+   * @param {string} name - Nom du produit
+   * @param {number} price - Prix du produit
+   * @param {string} imagePath - Chemin de l'image (sera converti en URL complète)
+   */
+  function buySingleProduct(name, price, imagePath) {
+    // IMPORTANT: Convertir le chemin en URL complète pour WhatsApp
+    const imageUrl = getFullImageUrl(imagePath);
+    
     const message = `🛍️ Nouvelle commande Tall Shops Guinée%0A%0A• ${name} — 1 × ${formatGNF(price)}%0A📸 ${imageUrl}%0A%0AMerci de confirmer la disponibilité.`;
     window.open(`https://wa.me/${WHA}?text=${message}`, '_blank');
   }
@@ -275,7 +326,7 @@
         id: prod.dataset.id,
         name: prod.dataset.name,
         price: parseInt(prod.dataset.price, 10),
-        image: prod.dataset.image
+        image: prod.dataset.image  // Stocke le chemin tel quel (sera converti au besoin)
       };
       openProductModal(product);
       return;
@@ -289,7 +340,7 @@
         id: prod.dataset.id,
         name: prod.dataset.name,
         price: parseInt(prod.dataset.price, 10),
-        image: prod.dataset.image
+        image: prod.dataset.image  // Stocke le chemin (sera converti pour WhatsApp)
       };
       addToCart(item);
       return;
@@ -300,7 +351,12 @@
       e.stopPropagation();
       const btn = e.target.matches('.whatsapp-btn') ? e.target : e.target.closest('.whatsapp-btn');
       const prod = btn.closest('.product');
-      buySingleProduct(prod.dataset.name, parseInt(prod.dataset.price, 10), prod.dataset.image);
+      // La fonction buySingleProduct convertira automatiquement en URL complète
+      buySingleProduct(
+        prod.dataset.name, 
+        parseInt(prod.dataset.price, 10), 
+        prod.dataset.image
+      );
       return;
     }
   });
@@ -326,6 +382,7 @@
   if (buyWhatsappModalBtn) {
     buyWhatsappModalBtn.addEventListener('click', () => {
       if (currentProduct) {
+        // La fonction convertira automatiquement en URL complète
         buySingleProduct(currentProduct.name, currentProduct.price, currentProduct.image);
         closeProductModal();
       }
@@ -399,7 +456,9 @@
     
     let message = '🛍️ Nouvelle commande Tall Shops Guinée%0A%0A';
     cart.forEach(i => {
-      message += `• ${i.name} — ${i.qty} × ${formatGNF(i.price)}%0A📸 ${i.image}%0A%0A`;
+      // IMPORTANT: Convertir chaque image en URL complète
+      const fullImageUrl = getFullImageUrl(i.image);
+      message += `• ${i.name} — ${i.qty} × ${formatGNF(i.price)}%0A📸 ${fullImageUrl}%0A%0A`;
     });
     
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -498,5 +557,6 @@
     });
   });
   
-  console.log('✅ Tall Shops Guinée - Loaded successfully');
+  console.log('✅ Tall Shops Guinée - Chargé avec succès');
+  console.log('📸 Base URL des images:', BASE_IMAGE_URL);
 })();
